@@ -107,6 +107,7 @@ BUILDDIR := build
 .PHONY: all
 all: make_builddir \
 	emit_build_config \
+	$(BUILDDIR)/recdetector \
 	$(BUILDDIR)/rec2loop
 
 .PHONY: emit_build_config
@@ -118,6 +119,10 @@ make_builddir:
 	@test -d $(BUILDDIR) || mkdir $(BUILDDIR)
 
 $(BUILDDIR)/rec2loop: $(SRC_DIR)/rec2loop.cpp
+	$(CXX) $(CXXFLAGS) $(LLVM_CXXFLAGS) $(CLANG_INCLUDES) $^ \
+		$(CLANG_LIBS) $(LLVM_LDFLAGS) -o $@
+
+$(BUILDDIR)/recdetector: $(SRC_DIR)/recdetector.cpp $(SRC_DIR)/FinderASTComsumer.cpp
 	$(CXX) $(CXXFLAGS) $(LLVM_CXXFLAGS) $(CLANG_INCLUDES) $^ \
 		$(CLANG_LIBS) $(LLVM_LDFLAGS) -o $@
 

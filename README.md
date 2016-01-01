@@ -20,7 +20,8 @@ test/
 
 Building rec2loop
 -----------------
-make  
+1. change Makefile
+2. make  
 
 Running
 -------
