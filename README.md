@@ -13,9 +13,9 @@ What is where
 -------------
 
 src/  
-	Source code.  
+	source code.  
 
-test/
+test/  
 	some sample.  
 
 Building rec2loop
@@ -24,4 +24,4 @@ make
 
 Running
 -------
-rec2loop <c++filepath>
+rec2loop \<filepath\>
