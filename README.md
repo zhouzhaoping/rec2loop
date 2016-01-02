@@ -30,4 +30,4 @@ replacing recursive functions using stack and while-loop
 #### recdetector_linear  \<filepath\>  
 only detect linear recursion functions  
 #### recdetector_cycle  \<filepath\>  
-detect f is recursion or not and output circle  
+detect recursion functions using graph algorithm and output callgraph circle  

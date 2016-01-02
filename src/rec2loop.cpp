@@ -11,6 +11,7 @@
 #include <map>
 #include <iostream>
 
+#include "utils.cpp"
 #include "clang/AST/ASTConsumer.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/Diagnostic.h"
@@ -38,30 +39,7 @@ map<string,pair<int,string>>  loc_vars;
 string header, stct;
 int indent = 1, cur_stage = 0;
 
-// Some utils functions to be used
-void GenCompInst(char* filename, CompilerInstance& CompInst) {
-    CompInst.createDiagnostics();
-    LangOptions &lo = CompInst.getLangOpts();
-    lo.CPlusPlus = 1;
-
-    auto TO = std::make_shared<TargetOptions>();
-    TO->Triple = llvm::sys::getDefaultTargetTriple();
-    TargetInfo *TI = TargetInfo::CreateTargetInfo(CompInst.getDiagnostics(), TO);
-    CompInst.setTarget(TI);
-
-    CompInst.createFileManager();
-    FileManager &FileMgr = CompInst.getFileManager();
-    CompInst.createSourceManager(FileMgr);
-    SourceManager &SourceMgr = CompInst.getSourceManager();
-    CompInst.createPreprocessor(TU_Module);
-    CompInst.createASTContext();
-
-    // Set the main file handled by the source manager to the input file.
-    const FileEntry *FileIn = FileMgr.getFile(filename);
-    SourceMgr.setMainFileID(SourceMgr.createFileID(FileIn, SourceLocation(), SrcMgr::C_User));
-    CompInst.getDiagnosticClient().BeginSourceFile(
-        CompInst.getLangOpts(), &CompInst.getPreprocessor());
-}
+//extern GenCompInst(char* filename, CompilerInstance& CompInst);
 
 void IndentToString(string& base, int indent, string aim) {
     string whitespace("");
