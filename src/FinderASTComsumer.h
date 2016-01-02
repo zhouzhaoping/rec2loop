@@ -20,5 +20,18 @@ public:
 
     map<CallGraphNode*,bool> functionisrec;
     void initRec();
-    void detectRec();
+    //void detectRec();
+    // simple implementation for detecting linear recursion function
+    void detectLinearRec();
+
+
+    map<CallGraphNode*,bool> functionVisited;
+    vector<CallGraphNode*> trace;
+    int count = 0;
+    bool flag = false;
+    void CycleDFSfinder(CallGraphNode* source, CallGraphNode* curnode);
+    // using graph algorithm for detecting cycle base-on callgraph
+    void detectCycleRec();
+
+    void printRecFunction();
 };

@@ -2,7 +2,9 @@
 * Comsumer for detecting recursion functions
 */
  
+#include <vector>
 #include <map>
+#include <stack>
 #include "FinderASTComsumer.h"
 #include "clang/AST/ASTConsumer.h"
 #include "clang/Analysis/CallGraph.h"
@@ -26,17 +28,77 @@ void FinderASTComsumer::initRec()
         functionisrec[*CI] = false;
     }
 }
-void FinderASTComsumer::detectRec()
+void FinderASTComsumer::detectLinearRec()
 {
     for (auto &f : functionisrec) {
         f.second = false;
         for (CallGraphNode::const_iterator CI = f.first->begin(), CE = f.first->end(); CI != CE; ++CI) {
             if (*CI == f.first){
-                (*CI)->print(llvm::errs());
+                //(*CI)->print(llvm::errs());
                 //llvm::errs() << " is recursion function!\n";
                 f.second = true;
                 break;
             }
+        }
+    }
+}
+
+
+void FinderASTComsumer::detectCycleRec()
+{
+    count = 0;
+    functionVisited.clear();
+    for (auto &f : functionisrec) {
+        functionVisited[f.first] = false;
+    }
+    trace.clear();
+    
+    // detect f is recursion or not and output circle
+    for (auto &f : functionisrec) {
+        flag = false;
+        trace.push_back(f.first);
+        functionVisited[f.first] = true;
+        CycleDFSfinder(f.first, f.first);
+        functionVisited[f.first] = false;
+        trace.pop_back();
+        if (flag)
+            functionVisited[f.first] = true;//delete source
+    }
+}
+
+void FinderASTComsumer::CycleDFSfinder(CallGraphNode* source, CallGraphNode* curnode)
+{
+    for (CallGraphNode::const_iterator CI = curnode->begin(), CE = curnode->end(); CI != CE; ++CI) {//TODO:iter same calls
+        if (*CI == source){
+            llvm::errs() << "recursion circle" << ++count << ": ";
+            for (auto &n : trace)
+            {
+                functionisrec[n] = true;
+                n->print(llvm::errs());
+                llvm::errs() << "->";
+            }
+            source->print(llvm::errs());
+            llvm::errs() << "\n";
+            flag = true;
+        }
+        else if (functionVisited[*CI] == false)
+        {
+            trace.push_back(curnode);
+            functionVisited[*CI] = true;
+            CycleDFSfinder(source, *CI);
+            functionVisited[*CI] = false;
+            trace.pop_back();
+        }
+    }
+}
+
+void FinderASTComsumer::printRecFunction()
+{
+    for (auto &f : functionisrec) {
+        if (f.second)
+        {
+            f.first->print(llvm::errs());
+            llvm::errs() << " is recursion function!\n";
         }
     }
 }

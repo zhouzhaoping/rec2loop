@@ -1,10 +1,21 @@
 #include <iostream>
 using namespace std;
-
+int add(int n);
+int hehe();
 int test();
+int main();
+
+int main()
+{
+	int n;
+	add(n);
+	while (cin >> n) cout << add(n) << endl;
+}
+
 int test()
 {
-	return 0;
+	hehe();
+        return 0;
 }
 int add(int n)
 {
@@ -21,8 +32,10 @@ int add(int n)
 	
 	return temp + 1;
 }
-
-int main()
+int hehe()
 {
-	int n; while (cin >> n) cout << add(n) << endl;
+	add(1);
+	add(1);
+        add(1);
+        return test();
 }

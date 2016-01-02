@@ -27,7 +27,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "FinderASTComsumer.h"
- 
+
 using namespace clang;
 using namespace std;
 
@@ -65,10 +65,16 @@ int main(int argc, char *argv[]) {
     FinderASTComsumer finderASTComsumer;
     ParseAST(finderCompInst.getPreprocessor(), &finderASTComsumer, finderCompInst.getASTContext());
 
-    //finderASTComsumer.callgraph.print(llvm::errs());
-    //finderASTComsumer.callgraph.dump();
+    finderASTComsumer.callgraph.dump();
     finderASTComsumer.initRec();
-    finderASTComsumer.detectRec();
-    
+
+#ifndef DETECT_CYCLE
+    finderASTComsumer.detectLinearRec();
+#else
+    finderASTComsumer.detectCycleRec();
+#endif
+
+    finderASTComsumer.printRecFunction();
+
     return 0;
 }

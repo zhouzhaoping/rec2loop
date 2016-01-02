@@ -31,6 +31,9 @@ LLVM_SRC_PATH := /home/work/llvm3.7/llvm
 LLVM_BUILD_PATH := /home/work/llvm3.7/build
 LLVM_BIN_PATH := $(LLVM_BUILD_PATH)/Release+Asserts/bin
 
+# DETECT_CYCLE detector find cycle or linear recursion from callgraph
+MYDEF=-DDETECT_CYCLE
+
 # Run make BUILD_NINJA=1 to enable these paths
 ifdef BUILD_NINJA
 	LLVM_BUILD_PATH := $$HOME/llvm/build/svn-ninja-release
@@ -107,7 +110,8 @@ BUILDDIR := build
 .PHONY: all
 all: make_builddir \
 	emit_build_config \
-	$(BUILDDIR)/recdetector \
+	$(BUILDDIR)/recdetector_linear \
+	$(BUILDDIR)/recdetector_cycle \
 	$(BUILDDIR)/rec2loop
 
 .PHONY: emit_build_config
@@ -122,8 +126,12 @@ $(BUILDDIR)/rec2loop: $(SRC_DIR)/rec2loop.cpp
 	$(CXX) $(CXXFLAGS) $(LLVM_CXXFLAGS) $(CLANG_INCLUDES) $^ \
 		$(CLANG_LIBS) $(LLVM_LDFLAGS) -o $@
 
-$(BUILDDIR)/recdetector: $(SRC_DIR)/recdetector.cpp $(SRC_DIR)/FinderASTComsumer.cpp
+$(BUILDDIR)/recdetector_linear: $(SRC_DIR)/recdetector.cpp $(SRC_DIR)/FinderASTComsumer.cpp
 	$(CXX) $(CXXFLAGS) $(LLVM_CXXFLAGS) $(CLANG_INCLUDES) $^ \
+		$(CLANG_LIBS) $(LLVM_LDFLAGS) -o $@
+
+$(BUILDDIR)/recdetector_cycle: $(SRC_DIR)/recdetector.cpp $(SRC_DIR)/FinderASTComsumer.cpp
+	$(CXX) $(MYDEF) $(CXXFLAGS) $(LLVM_CXXFLAGS) $(CLANG_INCLUDES) $^ \
 		$(CLANG_LIBS) $(LLVM_LDFLAGS) -o $@
 
 .PHONY: clean
