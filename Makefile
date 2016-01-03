@@ -112,7 +112,8 @@ all: make_builddir \
 	emit_build_config \
 	$(BUILDDIR)/recdetector_linear \
 	$(BUILDDIR)/recdetector_cycle \
-	$(BUILDDIR)/rec2loop
+	$(BUILDDIR)/rec2loop \
+	$(BUILDDIR)/rec2goto
 
 .PHONY: emit_build_config
 emit_build_config: make_builddir
@@ -123,6 +124,10 @@ make_builddir:
 	@test -d $(BUILDDIR) || mkdir $(BUILDDIR)
 
 $(BUILDDIR)/rec2loop: $(SRC_DIR)/rec2loop.cpp
+	$(CXX) $(CXXFLAGS) $(LLVM_CXXFLAGS) $(CLANG_INCLUDES) $^ \
+		$(CLANG_LIBS) $(LLVM_LDFLAGS) -o $@
+
+$(BUILDDIR)/rec2goto: $(SRC_DIR)/rec2goto.cpp
 	$(CXX) $(CXXFLAGS) $(LLVM_CXXFLAGS) $(CLANG_INCLUDES) $^ \
 		$(CLANG_LIBS) $(LLVM_LDFLAGS) -o $@
 

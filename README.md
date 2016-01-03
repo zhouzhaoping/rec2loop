@@ -25,8 +25,11 @@ Building rec2loop
 
 Running
 -------
+in build/  
 #### rec2loop \<filepath\>  
 replacing recursive functions using stack and while-loop  
+#### rec2goto \<filepath\>  
+replacing recursive functions using stack and while-loop/goto    
 #### recdetector_linear  \<filepath\>  
 only detect linear recursion functions  
 #### recdetector_cycle  \<filepath\>  
