@@ -2,6 +2,9 @@
  * Comsumer for detecting recursion functions
  */
 
+#ifndef FinderASTComsumer_H
+#define FinderASTComsumer_H
+
 #include "clang/AST/ASTConsumer.h"
 #include "clang/Analysis/CallGraph.h"
 #include "llvm/Support/Host.h"
@@ -35,3 +38,5 @@ public:
 
     void printRecFunction();
 };
+
+#endif

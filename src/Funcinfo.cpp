@@ -1,6 +1,5 @@
 #include "Funcinfo.h"
 #include <iostream>
-//using namespace std;
 
  void Funcinfo::DebugOutput()
   {

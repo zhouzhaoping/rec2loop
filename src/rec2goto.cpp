@@ -13,6 +13,8 @@
 #include "utils.cpp"
 #include "FinderASTComsumer.h"
 #include "Funcinfo.h"
+#include "CodeInsert.h"
+#include "CodeChangeVisitor.h"
 
 #include "clang/AST/ASTConsumer.h"
 #include "clang/AST/RecursiveASTVisitor.h"
@@ -32,53 +34,13 @@
 using namespace clang;
 using namespace std;
 
-/*
-// Variables about the code inserted
-string header, stct;
-int indent = 1, cur_stage = 0;
+map<FunctionDecl*, CodeInsert> funInsertMap;
 
-void IndentToString(string& base, int indent, string aim) {
-    string whitespace("");
-    for (int i = 0; i < indent; ++i)
-    whitespace += '\t';
-    base += whitespace + aim;   
+string getNewName(char* name)
+{
+    string name_(name);
+    return name_.insert(name_.find_first_of('.'), "_goto");
 }
-
-void GenStruct() {
-    string aim("struct SnapShotStruct {\n");
-    IndentToString(stct, indent, aim);
-    for (auto it = loc_vars.begin(), ie = loc_vars.end(); it != ie; ++it)
-    {
-        if (it->second.first == 0)
-            IndentToString(stct, indent, it->second.second+" "+it->first+";\n");
-        else
-            IndentToString(stct, indent, it->second.second+" arg"+to_string(it->second.first)+";\n");
-    }
-    IndentToString(stct, indent, "int stage;\n");
-    indent--;
-    IndentToString(stct, indent, "};\n\n");
-}
-
-void GenHeader() {
-
-    if (fun_type != "void")
-        IndentToString(header, indent, fun_type+" retVal;\n\n");
-
-    IndentToString(header, indent, "stack<SnapShotStruct> snapshotStack;\n");
-    IndentToString(header, indent, "SnapShotStruct currentSnapshot;\n\n");
-    IndentToString(header, indent, "currentSnapshot.stage = 0;\n");
-    for (auto it = fun_prms.begin(), ie = fun_prms.end(); it != ie; ++it)
-        IndentToString(header, indent, "currentSnapshot.arg"+to_string(it->second.first)+"="+it->first+";\n");
-
-    IndentToString(header, indent, "snapshotStack.push(currentSnapshot);\n");
-    IndentToString(header, indent++, "while(!snapshotStack.empty()) {\n");
-    IndentToString(header, indent, "currentSnapshot=snapshotStack.top();\n");
-    IndentToString(header, indent, "snapshotStack.pop();\n");
-    IndentToString(header, indent, "switch(currentSnapshot.stage) {\n");
-    IndentToString(header, indent++, "case "+to_string(cur_stage++)+":{ \n");
-}
-*/
-
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
@@ -115,7 +77,16 @@ int main(int argc, char *argv[]) {
       f.second->DebugOutput();
     }
 
-    // 2. Get recursion functions
+
+    // 2. Generate codes to be inserted
+     cout << endl << "[Genhead]" << endl;
+    for (auto &f : TheBasic.info_visitor.funInfoMap)
+    {
+      funInsertMap[f.first] = CodeInsert(f.first, f.second);
+      funInsertMap[f.first].DebugOutput();
+    }
+
+    // 3. Get recursion functions
     cout << endl << "[findRecs]" << endl;
     CompilerInstance finderCompInst;
     GenCompInst(argv[1], finderCompInst);
@@ -132,9 +103,26 @@ int main(int argc, char *argv[]) {
 #endif
     finderASTComsumer.printRecFunction();
 
-    // Generate codes to be inserted
-    //GenStruct();
-    //GenHeader();
+
+    // 4. Generate new code
+    cout << endl << "[Gencode]" << endl;
+    CompilerInstance WriteCompInst;
+    GenCompInst(argv[1], WriteCompInst);
+    Rewriter TheRewriter;
+    TheRewriter.setSourceMgr(WriteCompInst.getSourceManager(), WriteCompInst.getLangOpts());
+
+    MyASTConsumer TheConsumer(TheRewriter);
+    TheConsumer.addInfomation(funInsertMap);
+    ParseAST(WriteCompInst.getPreprocessor(), &TheConsumer, WriteCompInst.getASTContext());
+
+    std::error_code OutErrorInfo;
+    string newfilename = getNewName(argv[1]);
+    llvm::raw_fd_ostream outFile(llvm::StringRef(newfilename), OutErrorInfo, llvm::sys::fs::F_None);
+
+    const RewriteBuffer *RewriteBuf =
+    TheRewriter.getRewriteBufferFor(WriteCompInst.getSourceManager().getMainFileID());
+    outFile << std::string(RewriteBuf->begin(), RewriteBuf->end());
+    outFile.close();
 
     return 0;
   }

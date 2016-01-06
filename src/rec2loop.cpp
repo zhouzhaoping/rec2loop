@@ -338,6 +338,6 @@ int main(int argc, char *argv[]) {
     TheRewriter.getRewriteBufferFor(WriteCompInst.getSourceManager().getMainFileID());
     outFile << std::string(RewriteBuf->begin(), RewriteBuf->end());
     outFile.close();
-
+    
     return 0;
 }

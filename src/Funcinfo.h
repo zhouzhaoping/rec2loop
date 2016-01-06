@@ -1,3 +1,7 @@
+
+#ifndef Funcinfo_H
+#define Funcinfo_H
+
 #include <map>
 #include <string>
 
@@ -52,3 +56,5 @@ public:
   }
 
 };
+
+#endif
