@@ -39,8 +39,6 @@ map<string,pair<int,string>>  loc_vars;
 string header, stct;
 int indent = 1, cur_stage = 0;
 
-//extern GenCompInst(char* filename, CompilerInstance& CompInst);
-
 void IndentToString(string& base, int indent, string aim) {
     string whitespace("");
     for (int i = 0; i < indent; ++i)

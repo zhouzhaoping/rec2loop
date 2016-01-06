@@ -127,7 +127,7 @@ $(BUILDDIR)/rec2loop: $(SRC_DIR)/rec2loop.cpp
 	$(CXX) $(CXXFLAGS) $(LLVM_CXXFLAGS) $(CLANG_INCLUDES) $^ \
 		$(CLANG_LIBS) $(LLVM_LDFLAGS) -o $@
 
-$(BUILDDIR)/rec2goto: $(SRC_DIR)/rec2goto.cpp
+$(BUILDDIR)/rec2goto: $(SRC_DIR)/rec2goto.cpp $(SRC_DIR)/FinderASTComsumer.cpp $(SRC_DIR)/Funcinfo.cpp
 	$(CXX) $(CXXFLAGS) $(LLVM_CXXFLAGS) $(CLANG_INCLUDES) $^ \
 		$(CLANG_LIBS) $(LLVM_LDFLAGS) -o $@
 

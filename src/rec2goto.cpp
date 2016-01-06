@@ -1,16 +1,18 @@
-//------------------------------------------------------------------------------
-// Clang rewriter sample. Demonstrates:
-//
-// * How to use RecursiveASTVisitor to find interesting AST nodes.
-// * How to use the Rewriter API to rewrite the source code.
-//
-// Eli Bendersky (eliben@gmail.com)
-// This code is in the public domain
-//------------------------------------------------------------------------------
+/**
+* Recursion To Loop and Goto
+*/
+
 #include <cstdio>
 #include <memory>
 #include <string>
 #include <sstream>
+
+#include <map>
+#include <iostream>
+
+#include "utils.cpp"
+#include "FinderASTComsumer.h"
+#include "Funcinfo.h"
 
 #include "clang/AST/ASTConsumer.h"
 #include "clang/AST/RecursiveASTVisitor.h"
@@ -28,136 +30,111 @@
 #include "llvm/Support/raw_ostream.h"
 
 using namespace clang;
+using namespace std;
 
-// By implementing RecursiveASTVisitor, we can specify which AST nodes
-// we're interested in by overriding relevant methods.
-class MyASTVisitor : public RecursiveASTVisitor<MyASTVisitor> {
-public:
-  MyASTVisitor(Rewriter &R) : TheRewriter(R) {}
+/*
+// Variables about the code inserted
+string header, stct;
+int indent = 1, cur_stage = 0;
 
-  bool VisitStmt(Stmt *s) {
-    // Only care about If statements.
-    if (isa<IfStmt>(s)) {
-      IfStmt *IfStatement = cast<IfStmt>(s);
-      Stmt *Then = IfStatement->getThen();
+void IndentToString(string& base, int indent, string aim) {
+    string whitespace("");
+    for (int i = 0; i < indent; ++i)
+    whitespace += '\t';
+    base += whitespace + aim;   
+}
 
-      TheRewriter.InsertText(Then->getLocStart(), "// the 'if' part\n", true,
-                             true);
-
-      Stmt *Else = IfStatement->getElse();
-      if (Else)
-        TheRewriter.InsertText(Else->getLocStart(), "// the 'else' part\n",
-                               true, true);
+void GenStruct() {
+    string aim("struct SnapShotStruct {\n");
+    IndentToString(stct, indent, aim);
+    for (auto it = loc_vars.begin(), ie = loc_vars.end(); it != ie; ++it)
+    {
+        if (it->second.first == 0)
+            IndentToString(stct, indent, it->second.second+" "+it->first+";\n");
+        else
+            IndentToString(stct, indent, it->second.second+" arg"+to_string(it->second.first)+";\n");
     }
+    IndentToString(stct, indent, "int stage;\n");
+    indent--;
+    IndentToString(stct, indent, "};\n\n");
+}
 
-    return true;
-  }
+void GenHeader() {
 
-  bool VisitFunctionDecl(FunctionDecl *f) {
-    // Only function definitions (with bodies), not declarations.
-    if (f->hasBody()) {
-      Stmt *FuncBody = f->getBody();
+    if (fun_type != "void")
+        IndentToString(header, indent, fun_type+" retVal;\n\n");
 
-      // Type name as string
-      QualType QT = f->getReturnType();
-      std::string TypeStr = QT.getAsString();
+    IndentToString(header, indent, "stack<SnapShotStruct> snapshotStack;\n");
+    IndentToString(header, indent, "SnapShotStruct currentSnapshot;\n\n");
+    IndentToString(header, indent, "currentSnapshot.stage = 0;\n");
+    for (auto it = fun_prms.begin(), ie = fun_prms.end(); it != ie; ++it)
+        IndentToString(header, indent, "currentSnapshot.arg"+to_string(it->second.first)+"="+it->first+";\n");
 
-      // Function name
-      DeclarationName DeclName = f->getNameInfo().getName();
-      std::string FuncName = DeclName.getAsString();
+    IndentToString(header, indent, "snapshotStack.push(currentSnapshot);\n");
+    IndentToString(header, indent++, "while(!snapshotStack.empty()) {\n");
+    IndentToString(header, indent, "currentSnapshot=snapshotStack.top();\n");
+    IndentToString(header, indent, "snapshotStack.pop();\n");
+    IndentToString(header, indent, "switch(currentSnapshot.stage) {\n");
+    IndentToString(header, indent++, "case "+to_string(cur_stage++)+":{ \n");
+}
+*/
 
-      // Add comment before
-      std::stringstream SSBefore;
-      SSBefore << "// Begin function " << FuncName << " returning " << TypeStr
-               << "\n";
-      SourceLocation ST = f->getSourceRange().getBegin();
-      TheRewriter.InsertText(ST, SSBefore.str(), true, true);
-
-      // And after
-      std::stringstream SSAfter;
-      SSAfter << "\n// End function " << FuncName;
-      ST = FuncBody->getLocEnd().getLocWithOffset(1);
-      TheRewriter.InsertText(ST, SSAfter.str(), true, true);
-    }
-
-    return true;
-  }
-
-private:
-  Rewriter &TheRewriter;
-};
-
-// Implementation of the ASTConsumer interface for reading an AST produced
-// by the Clang parser.
-class MyASTConsumer : public ASTConsumer {
-public:
-  MyASTConsumer(Rewriter &R) : Visitor(R) {}
-
-  // Override the method that gets called for each parsed top-level
-  // declaration.
-  virtual bool HandleTopLevelDecl(DeclGroupRef DR) {
-    for (DeclGroupRef::iterator b = DR.begin(), e = DR.end(); b != e; ++b)
-      // Traverse the declaration using our AST visitor.
-      Visitor.TraverseDecl(*b);
-    return true;
-  }
-
-private:
-  MyASTVisitor Visitor;
-};
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
-    llvm::errs() << "Usage: rewritersample <filename>\n";
+    llvm::errs() << "Usage: recursionsample <filename>\n";
     return 1;
   }
 
-  // CompilerInstance will hold the instance of the Clang compiler for us,
-  // managing the various objects needed to run the compiler.
-  CompilerInstance TheCompInst;
-  TheCompInst.createDiagnostics();
 
-  LangOptions &lo = TheCompInst.getLangOpts();
-  lo.CPlusPlus = 1;
+// 1. Get code infos
+  cout << endl << "[Travel]" << endl;
+  CompilerInstance BasicCompInst;
+  GenCompInst(argv[1], BasicCompInst);
+  BasicASTComsumer TheBasic;
+  ParseAST(BasicCompInst.getPreprocessor(), &TheBasic, BasicCompInst.getASTContext());
 
-  // Initialize target info with the default triple for our platform.
-  auto TO = std::make_shared<TargetOptions>();
-  TO->Triple = llvm::sys::getDefaultTargetTriple();
-  TargetInfo *TI =
-      TargetInfo::CreateTargetInfo(TheCompInst.getDiagnostics(), TO);
-  TheCompInst.setTarget(TI);
 
-  TheCompInst.createFileManager();
-  FileManager &FileMgr = TheCompInst.getFileManager();
-  TheCompInst.createSourceManager(FileMgr);
-  SourceManager &SourceMgr = TheCompInst.getSourceManager();
-  TheCompInst.createPreprocessor(TU_Module);
-  TheCompInst.createASTContext();
+// Change parameters to be special from local infomation
+  cout << endl << "[Change]" << endl;
+  for (auto &f : TheBasic.info_visitor.funInfoMap)
+  {
+    for (auto it = f.second->loc_vars.begin(), ie = f.second->loc_vars.end(); it != ie; ++it)
+      if (f.second->fun_prms.count(it->first))
+      {
+        it->second.first = f.second->fun_prms[it->first].first;
+        cout << "change " << it->first << endl;
+      } 
 
-  // A Rewriter helps us manage the code rewriting task.
-  Rewriter TheRewriter;
-  TheRewriter.setSourceMgr(SourceMgr, TheCompInst.getLangOpts());
+    }
 
-  // Set the main file handled by the source manager to the input file.
-  const FileEntry *FileIn = FileMgr.getFile(argv[1]);
-  SourceMgr.setMainFileID(
-      SourceMgr.createFileID(FileIn, SourceLocation(), SrcMgr::C_User));
-  TheCompInst.getDiagnosticClient().BeginSourceFile(
-      TheCompInst.getLangOpts(), &TheCompInst.getPreprocessor());
+    // debug output
+    cout << endl << "[Debug]" << endl;
+    for (auto &f : TheBasic.info_visitor.funInfoMap)
+    {
+      f.second->DebugOutput();
+    }
 
-  // Create an AST consumer instance which is going to get called by
-  // ParseAST.
-  MyASTConsumer TheConsumer(TheRewriter);
+    // 2. Get recursion functions
+    cout << endl << "[findRecs]" << endl;
+    CompilerInstance finderCompInst;
+    GenCompInst(argv[1], finderCompInst);
+    FinderASTComsumer finderASTComsumer;
+    ParseAST(finderCompInst.getPreprocessor(), &finderASTComsumer, finderCompInst.getASTContext());
 
-  // Parse the file to AST, registering our consumer as the AST consumer.
-  ParseAST(TheCompInst.getPreprocessor(), &TheConsumer,
-           TheCompInst.getASTContext());
+    finderASTComsumer.callgraph.dump();
+    finderASTComsumer.initRec();
 
-  // At this point the rewriter's buffer should be full with the rewritten
-  // file contents.
-  const RewriteBuffer *RewriteBuf =
-      TheRewriter.getRewriteBufferFor(SourceMgr.getMainFileID());
-  llvm::outs() << std::string(RewriteBuf->begin(), RewriteBuf->end());
+#ifndef DETECT_CYCLE
+    finderASTComsumer.detectLinearRec();
+#else
+    finderASTComsumer.detectCycleRec();
+#endif
+    finderASTComsumer.printRecFunction();
 
-  return 0;
-}
+    // Generate codes to be inserted
+    //GenStruct();
+    //GenHeader();
+
+    return 0;
+  }

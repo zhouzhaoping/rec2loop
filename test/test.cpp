@@ -1,9 +1,9 @@
 #include <iostream>
 using namespace std;
-int add(int n);
-int hehe();
-int test();
-int main();
+//int add(int n);
+//int hehe();
+//int test();
+//int main();
 
 int main()
 {
@@ -17,7 +17,7 @@ int test()
 	hehe();
         return 0;
 }
-int add(int n)
+int add(int n, int m, int a)
 {
 	if (n == 1)
 	{
