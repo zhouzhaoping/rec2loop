@@ -26,6 +26,7 @@ public:
     //void detectRec();
     // simple implementation for detecting linear recursion function
     void detectLinearRec();
+    map<CallGraphNode*,int> functionrectime;
 
 
     map<CallGraphNode*,bool> functionVisited;

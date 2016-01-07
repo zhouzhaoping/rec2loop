@@ -18,8 +18,13 @@
 
     QualType t = v->getType();
     string n = v->getNameAsString();
-    curFuncinfo->loc_vars[n] = pair<int,string>(0, t.getAsString());
-    cout << "in vardecl: " << n << " " << curFuncinfo->loc_vars[n].first << " " << curFuncinfo->loc_vars[n].second << endl;
+    if (curFuncinfo)
+    {
+      curFuncinfo->loc_vars[n] = pair<int,string>(0, t.getAsString());
+      cout << "in vardecl: " << n << " " << curFuncinfo->loc_vars[n].first << " " << curFuncinfo->loc_vars[n].second << endl;
+    }
+    else
+      cout << "find global vardecl: " << n << " " << t.getAsString() << endl;
     return true;
   }
 

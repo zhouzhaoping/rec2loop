@@ -16,13 +16,16 @@ public:
   CodeInsert(FunctionDecl* funcDecl_, Funcinfo* funcInfo_);
 
 string header, stct;
-int indent = 1, cur_stage = 0;
+int indent = 1, cur_stage = 2;
 static void IndentToString(string& base, int indent, string aim);
 
 void GenStruct();
 
-void GenHeader();
+void GenHeader(int n);
 void DebugOutput();
+
+
+    map<SourceLocation,int> mmap;
 
 };
 

@@ -18,7 +18,7 @@
 #include "clang/Basic/FileManager.h"
 #include "clang/Basic/SourceManager.h"
 #include "clang/Basic/TargetOptions.h"
-#include "clang/Basic/TargetInfo.h"
+#include "clang/Basic/TargetInfo.h"                                                                                                             
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Lex/Preprocessor.h"
 #include "clang/Parse/ParseAST.h"
@@ -212,7 +212,7 @@ public:
     bool VisitStmt(Stmt *s) {
         
         // Call-Expression --> stack operations
-        if (isa<CallExpr>(s) && fun_type == "void") {
+        if (isa<Expr>(s) && isa<CallExpr>(s) && fun_type == "void") {
             
             CallExpr* c = cast<CallExpr>(s);
             ChangeCall(c, c->getLocStart());

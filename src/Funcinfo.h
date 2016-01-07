@@ -32,7 +32,7 @@ class GetInfoVisitor : public RecursiveASTVisitor<GetInfoVisitor>
 
 public:
 
-  Funcinfo *curFuncinfo;
+  Funcinfo *curFuncinfo = NULL;
   // Collection of FuncDecl and Funcinfomation
   map<FunctionDecl*, Funcinfo*> funInfoMap;
 

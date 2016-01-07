@@ -32,12 +32,14 @@ void FinderASTComsumer::detectLinearRec()
 {
     for (auto &f : functionisrec) {
         f.second = false;
+        functionrectime[f.first] = 0;
         for (CallGraphNode::const_iterator CI = f.first->begin(), CE = f.first->end(); CI != CE; ++CI) {
             if (*CI == f.first){
                 //(*CI)->print(llvm::errs());
                 //llvm::errs() << " is recursion function!\n";
                 f.second = true;
-                break;
+                functionrectime[f.first] = functionrectime[f.first] + 1;
+                //break;
             }
         }
     }

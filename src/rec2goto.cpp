@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
     TheRewriter.setSourceMgr(WriteCompInst.getSourceManager(), WriteCompInst.getLangOpts());
 
     MyASTConsumer TheConsumer(TheRewriter);
-    TheConsumer.addInfomation(funInsertMap);
+    TheConsumer.setInfomation(finderASTComsumer.functionrectime, funInsertMap);
     ParseAST(WriteCompInst.getPreprocessor(), &TheConsumer, WriteCompInst.getASTContext());
 
     std::error_code OutErrorInfo;

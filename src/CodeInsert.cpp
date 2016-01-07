@@ -2,12 +2,32 @@
 #include <iostream>
 using namespace std;
 
+ string int2str( int num)
+ {
+    if (num == 0 )
+       return " 0 " ;                                                                                                                                      
+   
+    string str = "" ;
+    int num_ = num > 0 ? num : - 1 * num;
+
+    while (num_)
+    {
+       str = ( char )(num_ % 10 + 48 ) + str;
+       num_ /= 10 ;
+    } 
+ 
+    if (num < 0 )
+       str = " - " + str;
+
+    return str;
+}
+
 CodeInsert::CodeInsert(FunctionDecl* funcDecl_, Funcinfo* funcInfo_)
   {
       funcDecl = funcDecl_;
       funcInfo = funcInfo_;
       GenStruct();
-      GenHeader();
+      //GenHeader(3);
   }
 
 void CodeInsert::IndentToString(string& base, int indent, string aim) {
@@ -27,31 +47,40 @@ void CodeInsert::GenStruct() {
         else
             IndentToString(stct, indent, it->second.second+" arg"+to_string(it->second.first)+";\n");
     }
-    IndentToString(stct, indent, "int stage;\n");
+    IndentToString(stct, indent, "int label;\n");
     indent--;
     IndentToString(stct, indent, "};\n\n");
 }
 
-void CodeInsert::GenHeader() {
+void CodeInsert::GenHeader(int n) {
 
     if (funcInfo->fun_type != "void")
         IndentToString(header, indent, funcInfo->fun_type+" retVal;\n\n");
 
     IndentToString(header, indent, "stack<SnapShotStruct> snapshotStack;\n");
     IndentToString(header, indent, "SnapShotStruct currentSnapshot;\n\n");
-    IndentToString(header, indent, "currentSnapshot.stage = 0;\n");
+    IndentToString(header, indent, "currentSnapshot.label = 1;\n");
     for (auto it = funcInfo->fun_prms.begin(), ie = funcInfo->fun_prms.end(); it != ie; ++it)
         IndentToString(header, indent, "currentSnapshot.arg"+to_string(it->second.first)+"="+it->first+";\n");
 
     IndentToString(header, indent, "snapshotStack.push(currentSnapshot);\n");
-    IndentToString(header, indent++, "while(!snapshotStack.empty()) {\n");
+    IndentToString(header, indent, "label0:\n");
+    IndentToString(header, indent++, "if (!snapshotStack.empty()) {\n");
     IndentToString(header, indent, "currentSnapshot=snapshotStack.top();\n");
     IndentToString(header, indent, "snapshotStack.pop();\n");
-    IndentToString(header, indent, "switch(currentSnapshot.stage) {\n");
-    IndentToString(header, indent++, "case "+to_string(cur_stage++)+":{ \n");
+    IndentToString(header, indent++, "switch(currentSnapshot.label) {\n");
+    for (int i = 1; i <= n + 1; ++i)
+    {
+      IndentToString(header, indent, "case "+int2str(i)+":goto label" + int2str(i) + ";\n");
+    }
+    IndentToString(header, --indent, "}\n");
+    IndentToString(header, --indent, "}\n"); 
+    IndentToString(header, indent++, "else\n");
+    IndentToString(header, indent--, "return retVal;\n");
+    IndentToString(header, indent++, "label1:\n");
 }
 void CodeInsert::DebugOutput()
 {
-  cout << "header:" << endl << header << endl;
+  //cout << "header:" << endl << header << endl;
   cout << "stct:" << endl << stct << endl;
 }
