@@ -121,7 +121,7 @@ int main(int argc, char *argv[]) {
 
     const RewriteBuffer *RewriteBuf =
     TheRewriter.getRewriteBufferFor(WriteCompInst.getSourceManager().getMainFileID());
-    outFile << std::string(RewriteBuf->begin(), RewriteBuf->end());
+    outFile << "#include <stack>\n" << std::string(RewriteBuf->begin(), RewriteBuf->end());
     outFile.close();
 
     return 0;

@@ -22,7 +22,7 @@
 
         string nextStage;
 
-        CodeInsert::IndentToString(nextStage, curCodeInsert.indent, "SnapShotStruct newSnapshot;\n");
+        //CodeInsert::IndentToString(nextStage, curCodeInsert.indent, curCodeInsert.stuctname + " newSnapshot;\n");
         CodeInsert::IndentToString(nextStage, curCodeInsert.indent, "newSnapshot.label = 1;\n");
 
         // Parameters called to assign
@@ -100,26 +100,6 @@ bool MyASTVisitor::VisitStmt(Stmt *s) {
 
         }*/
 
-        // change return stmt
-        if (isa<ReturnStmt>(s)) {
-
-            
-            //TheRewriter.InsertText(s->getLocEnd(), "\ngoto label0;\n", true, true);
-            
-            SourceLocation st = s->getLocStart();
-            if (curCodeInsert.funcInfo->fun_type != "void")
-                TheRewriter.ReplaceText(st, 6, "retVal=");
-            else
-                TheRewriter.ReplaceText(st, 6, "");
-
-            
-            SourceLocation se = Lexer::findLocationAfterToken(s->getLocEnd(),
-                                        tok::semi,
-                                        TheRewriter.getSourceMgr(),
-                                        TheRewriter.getLangOpts(), true);
-            TheRewriter.InsertText(se, "\ngoto label0;\n", true, true);
-        }
-
         // add brace
         if (isa<IfStmt>(s)) {
             IfStmt *IfStatement = cast<IfStmt>(s);
@@ -135,6 +115,26 @@ bool MyASTVisitor::VisitStmt(Stmt *s) {
         } else if (isa<ForStmt>(s)) {
             ForStmt* f = cast<ForStmt>(s);
             AddBrace(f->getBody());
+        }
+
+        // change return stmt
+        if (isa<ReturnStmt>(s)) {
+
+            
+            //TheRewriter.InsertText(s->getLocEnd(), "\ngoto label0;\n", true, true);
+            
+            SourceLocation st = s->getLocStart();
+            if (curCodeInsert.funcInfo->fun_type != "void")
+                TheRewriter.ReplaceText(st, 6, "retVal=");
+            else
+                TheRewriter.ReplaceText(st, 6, "");
+
+
+            SourceLocation se = Lexer::findLocationAfterToken(s->getLocEnd(),
+                                        tok::semi,
+                                        TheRewriter.getSourceMgr(),
+                                        TheRewriter.getLangOpts(), true);
+            TheRewriter.InsertText(se, "\ngoto label0;\n", true, true);
         }
 
         // change currentSnapshot.var
@@ -191,7 +191,7 @@ bool MyASTVisitor::VisitFunctionDecl(FunctionDecl *f) {
         functionNeedChange = true;
         curCodeInsert.GenHeader(calltimes);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
 
-//TheRewriter.InsertText(f->getSourceRange().getBegin(), codeInsert.stct, true, true);
+        TheRewriter.InsertText(f->getSourceRange().getBegin(), curCodeInsert.stct, true, true);
 
 //SourceLocation s = f->getNameInfo().getBeginLoc();
 //TheRewriter.InsertText(s, "loop", true, false);
@@ -200,7 +200,7 @@ bool MyASTVisitor::VisitFunctionDecl(FunctionDecl *f) {
 
         SourceLocation ST = FuncBody->getLocStart().getLocWithOffset(2);
 
-        TheRewriter.InsertText(ST, curCodeInsert.stct, true, true);
+        //TheRewriter.InsertText(ST, curCodeInsert.stct, true, true);
         TheRewriter.InsertText(ST, curCodeInsert.header, true, true);
 
 /*

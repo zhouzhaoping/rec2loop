@@ -1,4 +1,5 @@
-
+#include <iostream>
+using namespace std;
 
 long long fac(long long n)
 {
@@ -18,3 +19,7 @@ long long fac(long long n)
 
 }
 
+int main()
+{
+	int n; while (cin >> n) cout << add(n) << endl;
+}

@@ -26,6 +26,7 @@ CodeInsert::CodeInsert(FunctionDecl* funcDecl_, Funcinfo* funcInfo_)
   {
       funcDecl = funcDecl_;
       funcInfo = funcInfo_;
+      stuctname = funcInfo->fun_name + "_SnapShotStruct";
       GenStruct();
       //GenHeader(3);
   }
@@ -38,7 +39,7 @@ void CodeInsert::IndentToString(string& base, int indent, string aim) {
 }
 
 void CodeInsert::GenStruct() {
-    string aim("struct SnapShotStruct {\n");
+    string aim("struct " + stuctname + " {\n");
     IndentToString(stct, indent, aim);
     for (auto it = funcInfo->loc_vars.begin(), ie = funcInfo->loc_vars.end(); it != ie; ++it)
     {
@@ -57,8 +58,9 @@ void CodeInsert::GenHeader(int n) {
     if (funcInfo->fun_type != "void")
         IndentToString(header, indent, funcInfo->fun_type+" retVal;\n\n");
 
-    IndentToString(header, indent, "stack<SnapShotStruct> snapshotStack;\n");
-    IndentToString(header, indent, "SnapShotStruct currentSnapshot;\n\n");
+    IndentToString(header, indent, "std::stack<" + stuctname + "> snapshotStack;\n");
+    IndentToString(header, indent, stuctname + " newSnapshot;\n\n");
+    IndentToString(header, indent, stuctname + " currentSnapshot;\n\n");
     IndentToString(header, indent, "currentSnapshot.label = 1;\n");
     for (auto it = funcInfo->fun_prms.begin(), ie = funcInfo->fun_prms.end(); it != ie; ++it)
         IndentToString(header, indent, "currentSnapshot.arg"+to_string(it->second.first)+"="+it->first+";\n");

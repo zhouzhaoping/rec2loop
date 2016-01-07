@@ -15,7 +15,7 @@ public:
   CodeInsert(){}
   CodeInsert(FunctionDecl* funcDecl_, Funcinfo* funcInfo_);
 
-string header, stct;
+string stuctname, header, stct;
 int indent = 1, cur_stage = 2;
 static void IndentToString(string& base, int indent, string aim);
 
