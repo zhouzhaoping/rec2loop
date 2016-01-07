@@ -36,9 +36,14 @@
             DeclRefExpr* d = dyn_cast<DeclRefExpr>(e);
             curCodeInsert.mmap[d->getLocStart()] = 1;
             
-            string n = "currentSnapshot." + d->getNameInfo().getName().getAsString();
+            string name = d->getNameInfo().getName().getAsString();
+            if (curCodeInsert.funcInfo->loc_vars[name].first == 0)
+                    name = "currentSnapshot." + name;
+            else 
+                    name = "currentSnapshot.arg" + to_string(curCodeInsert.funcInfo->loc_vars[name].first);
+            //string n = "currentSnapshot." + name;
             
-            CodeInsert::IndentToString(nextStage, curCodeInsert.indent, "newSnapshot.arg"+to_string(i)+"="+n+";\n");
+            CodeInsert::IndentToString(nextStage, curCodeInsert.indent, "newSnapshot.arg"+to_string(i)+"="+name+";\n");
         }
 
         CodeInsert::IndentToString(nextStage, curCodeInsert.indent, "currentSnapshot.label++;\n");
@@ -100,7 +105,7 @@ bool MyASTVisitor::VisitStmt(Stmt *s) {
 
         }*/
 
-        // add brace
+         // add brace
         if (isa<IfStmt>(s)) {
             IfStmt *IfStatement = cast<IfStmt>(s);
             Stmt *Then = IfStatement->getThen();
@@ -134,8 +139,11 @@ bool MyASTVisitor::VisitStmt(Stmt *s) {
                                         tok::semi,
                                         TheRewriter.getSourceMgr(),
                                         TheRewriter.getLangOpts(), true);
-            TheRewriter.InsertText(se, "\ngoto label0;\n", true, true);
+            //TheRewriter.ReplaceText(se, 1, ";\ngoto label0;\n");
+            TheRewriter.InsertText(se, "goto label0;\n", true, true);
         }
+
+    
 
         // change currentSnapshot.var
         if (isa<DeclRefExpr>(s)) {

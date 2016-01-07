@@ -62,6 +62,35 @@ int fib(int n)
 	return temp;
 }
 
+int whilefunc(int n)
+{
+	int temp;
+	temp = 0;
+	n = n - 1;
+	while (n > 0)
+	{
+		int t;
+		t = whilefunc(n);
+		temp = temp + t;
+		n = n - 1;
+	}
+	return temp;
+}
+
+int forfunc(int n)
+{
+	int temp;
+	temp = 0;
+	n = n - 1;
+	for (n = n - 1; n > 0; n--)
+	{	
+		int t;
+		t = forfunc(n);
+		temp = temp + t;
+	}
+	return temp;
+}
+
 int main()
 {
 	int n; 
@@ -83,6 +112,18 @@ int main()
 		if (n <= 0)
 			break;
 		std::cout << fib(n) << std::endl;
+	}
+	while (std::cin >> n) 
+	{
+		if (n <= 0)
+			break;
+		std::cout << whilefunc(n) << std::endl;
+	}
+	while (std::cin >> n) 
+	{
+		if (n <= 0)
+			break;
+		std::cout << forfunc(n) << std::endl;
 	}
 	return 0;
 }
